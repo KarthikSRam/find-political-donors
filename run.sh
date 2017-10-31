@@ -5,6 +5,7 @@
 #python ./src/find_political_donors.py ./input/itcont.txt ./output/medianvals_by_zip.txt ./output/medianvals_by_date.txt
 
 javac ./src/com/karthik/donors/Transaction.java
+javac ./src/com/karthik/donors/CharityEvent.java
 javac ./src/com/karthik/donors/Functionality.java
 java Functionality
 
