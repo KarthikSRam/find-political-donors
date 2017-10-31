@@ -20,8 +20,10 @@ public class Functionality {
 		FileReader fr = null;
 		BufferedWriter bw = null;
 		FileWriter fw = null;
+		BufferedWriter bw1 = null;
+		FileWriter fw1 = null;
 		ArrayList<Transaction> allRecords = new ArrayList<>();
-		
+		ArrayList<CharityEvent> allCharity = new ArrayList<>();
 		try
 		{
 			fr = new FileReader(inputFilename);
@@ -29,6 +31,9 @@ public class Functionality {
 			
 			fw = new FileWriter(zipFilename);
 			bw = new BufferedWriter(fw);
+			
+			fw1 = new FileWriter(dateFilename);
+			bw1 = new BufferedWriter(fw1);
 			String currentLine;
 			
 			while ((currentLine = br.readLine()) != null) {
@@ -45,6 +50,27 @@ public class Functionality {
 				//float trans_amt = 5;
 				String other_ID = tokens[15];
 				Transaction t = new Transaction(rec_ID, zipcode, trans_date, trans_amt, other_ID);
+				int flag = 0;
+				for(CharityEvent c : allCharity)
+				{
+					if(t.getRecepient_ID().equals(c.getRecepient_ID()))
+					{
+						if(t.getTransaction_DT().equals(c.getTransaction_DT()))
+						{
+							flag = 1;
+							c.contributions.add(trans_amt);
+						}
+					}
+				}
+				//This is the case that this pair of recipient and date is new,
+				//so we create a new CharityEvent
+				if(flag==0)
+				{
+					ArrayList<Float> contributions = new ArrayList<>();
+					contributions.add(trans_amt);
+					CharityEvent newCE = new CharityEvent(rec_ID, trans_date, contributions);
+					allCharity.add(newCE);
+				}
 				int count = 1;
 				ArrayList<Float> medianCalc = new ArrayList<>();
 				medianCalc.add(trans_amt);
@@ -85,6 +111,29 @@ public class Functionality {
 				//System.out.println(median);
 				//System.out.println(toWrite);
 			}
+			for(CharityEvent c : allCharity)
+			{
+				int count = c.contributions.size();
+				Collections.sort(c.contributions);
+				float median = 0;
+				if(count%2 == 0)
+				{
+					median = (c.contributions.get(count/2) + c.contributions.get(count/2 - 1)) / 2;
+					median = Math.round(median);
+				}
+				
+				else
+				{
+					median = Math.round(c.contributions.get(count/2));
+				}
+				float total = 0;
+				for(float val : c.contributions)
+				{
+					total = total + val;
+				}
+				String toWrite = c.getRecepient_ID()+ "|" + c.getTransaction_DT() + "|" + (int)median + "|" + count + "|" + (int)total+"\n";
+				bw1.write(toWrite);
+			}
 		}
 		catch(IOException e)
 		{
@@ -105,6 +154,12 @@ public class Functionality {
 				
 				if(fw != null)
 					fw.close();
+				
+				if(bw1 != null)
+					bw1.close();
+				
+				if(fw1 != null)
+					fw1.close();
 
 			} catch (IOException ex) {
 
